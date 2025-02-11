@@ -2,51 +2,28 @@
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TournamentCard } from "./TournamentCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import type { Tournament } from "@/types/database.types";
 
 const SCROLL_AMOUNT = 350;
 
-// Sample data - replace with your actual data
-const tournaments = [
-  {
-    id: 1,
-    banner: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    title: "Spring Championship 2024",
-    status: "in-progress" as const,
-    participants: { current: 75, max: 100 },
-    prizePool: "$10,000",
-    startDate: "Apr 15, 2024",
-  },
-  {
-    id: 2,
-    banner: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    title: "Summer Invitational",
-    status: "upcoming" as const,
-    participants: { current: 25, max: 128 },
-    prizePool: "$5,000",
-    startDate: "Jun 1, 2024",
-  },
-  {
-    id: 3,
-    banner: "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    title: "Winter Classic",
-    status: "completed" as const,
-    participants: { current: 64, max: 64 },
-    prizePool: "$15,000",
-    startDate: "Mar 1, 2024",
-  },
-  {
-    id: 4,
-    banner: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
-    title: "Pro League Season 5",
-    status: "closed" as const,
-    participants: { current: 45, max: 50 },
-    prizePool: "$7,500",
-    startDate: "Feb 15, 2024",
-  },
-];
+const fetchTournaments = async () => {
+  const { data, error } = await supabase
+    .from('tournaments')
+    .select('*')
+    .order('start_date', { ascending: true });
+  
+  if (error) throw error;
+  return data as Tournament[];
+};
 
 export const TournamentList = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { data: tournaments, isLoading, error } = useQuery({
+    queryKey: ['tournaments'],
+    queryFn: fetchTournaments,
+  });
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -57,6 +34,26 @@ export const TournamentList = () => {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="relative w-full max-w-[1200px] mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-40">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="relative w-full max-w-[1200px] mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-40">
+          <p className="text-red-500">Error loading tournaments</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full max-w-[1200px] mx-auto px-4 py-8">
@@ -89,9 +86,23 @@ export const TournamentList = () => {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        {tournaments.map((tournament) => (
+        {tournaments?.map((tournament) => (
           <div key={tournament.id} className="snap-start">
-            <TournamentCard {...tournament} />
+            <TournamentCard 
+              banner={tournament.banner_url}
+              title={tournament.title}
+              status={tournament.status}
+              participants={{
+                current: tournament.current_participants,
+                max: tournament.max_participants
+              }}
+              prizePool={`$${tournament.prize_pool.toLocaleString()}`}
+              startDate={new Date(tournament.start_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })}
+            />
           </div>
         ))}
       </div>

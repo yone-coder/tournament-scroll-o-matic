@@ -36,6 +36,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tournaments: {
+        Row: {
+          banner_url: string
+          created_at: string
+          current_participants: number
+          id: string
+          max_participants: number
+          prize_pool: number
+          start_date: string
+          status: Database["public"]["Enums"]["tournament_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          banner_url: string
+          created_at?: string
+          current_participants?: number
+          id?: string
+          max_participants: number
+          prize_pool: number
+          start_date: string
+          status?: Database["public"]["Enums"]["tournament_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string
+          created_at?: string
+          current_participants?: number
+          id?: string
+          max_participants?: number
+          prize_pool?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["tournament_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -89,7 +128,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      tournament_status: "in-progress" | "closed" | "completed" | "upcoming"
     }
     CompositeTypes: {
       [_ in never]: never
