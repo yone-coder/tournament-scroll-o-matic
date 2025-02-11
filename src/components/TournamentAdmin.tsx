@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Tournament } from "@/types/database.types";
 import { toast } from "sonner";
+import { TournamentForm } from "./TournamentForm";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 const fetchTournaments = async () => {
   const { data, error } = await supabase
@@ -21,6 +23,7 @@ const fetchTournaments = async () => {
 export const TournamentAdmin = () => {
   const queryClient = useQueryClient();
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   
   const { data: tournaments, isLoading, error } = useQuery({
     queryKey: ['tournaments'],
@@ -55,7 +58,6 @@ export const TournamentAdmin = () => {
     updatedTournaments[index] = updatedTournaments[newIndex];
     updatedTournaments[newIndex] = temp;
 
-    // Update the tournaments with all required fields
     try {
       const updates = updatedTournaments.map((tournament) => ({
         id: tournament.id,
@@ -82,6 +84,16 @@ export const TournamentAdmin = () => {
     }
   };
 
+  const openForm = (tournament?: Tournament) => {
+    setSelectedTournament(tournament || null);
+    setIsFormOpen(true);
+  };
+
+  const closeForm = () => {
+    setSelectedTournament(null);
+    setIsFormOpen(false);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-40">
@@ -104,7 +116,7 @@ export const TournamentAdmin = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Manage Tournaments</CardTitle>
           <button
-            onClick={() => setSelectedTournament(null)}
+            onClick={() => openForm()}
             className="bg-primary text-white p-2 rounded-full hover:bg-primary/90 transition-colors"
             aria-label="Add new tournament"
           >
@@ -152,7 +164,7 @@ export const TournamentAdmin = () => {
                 </div>
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => setSelectedTournament(tournament)}
+                    onClick={() => openForm(tournament)}
                     className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 transition-colors"
                     aria-label="Edit tournament"
                   >
@@ -171,6 +183,15 @@ export const TournamentAdmin = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-3xl">
+          <TournamentForm 
+            tournament={selectedTournament || undefined} 
+            onClose={closeForm} 
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
