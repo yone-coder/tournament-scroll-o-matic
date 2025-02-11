@@ -55,10 +55,16 @@ export const TournamentAdmin = () => {
     updatedTournaments[index] = updatedTournaments[newIndex];
     updatedTournaments[newIndex] = temp;
 
-    // Update the start dates to reflect the new order
+    // Update the tournaments with all required fields
     try {
-      const updates = updatedTournaments.map((tournament, idx) => ({
+      const updates = updatedTournaments.map((tournament) => ({
         id: tournament.id,
+        title: tournament.title,
+        banner_url: tournament.banner_url,
+        status: tournament.status,
+        max_participants: tournament.max_participants,
+        current_participants: tournament.current_participants,
+        prize_pool: tournament.prize_pool,
         start_date: new Date(tournament.start_date).toISOString(),
       }));
 
